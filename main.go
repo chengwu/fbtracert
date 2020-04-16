@@ -125,12 +125,12 @@ func TCPReceiver(done <-chan struct{}, af string, srcAddr net.IP, targetAddr str
 	// IP + TCP header, this channel is fed from the socket
 	recv := make(chan TCPResponse)
 	go func() {
-		ipHdrSize := 0 // no IPv6 header present on TCP packets received on the raw socket
-		if af == "ip4" {
-			// IPv4 header is always included with the ipv4 raw socket receive
-			ipHdrSize = minIP4HeaderSize
-		}
-		packet := make([]byte, ipHdrSize+maxTCPHdrSize)
+		//ipHdrSize := 0 // no IPv6 header present on TCP packets received on the raw socket
+		//if af == "ip4" {
+		//	// IPv4 header is always included with the ipv4 raw socket receive
+		//	ipHdrSize = minIP4HeaderSize
+		//}
+		packet := make([]byte, /*ipHdrSize+*/maxTCPHdrSize)
 
 		for {
 			n, from, err := conn.ReadFrom(packet)
@@ -139,12 +139,12 @@ func TCPReceiver(done <-chan struct{}, af string, srcAddr net.IP, targetAddr str
 			}
 
 			// IP + TCP header size
-			if n < ipHdrSize+minTCPHdrSize {
+			if n < /*ipHdrSize+*/minTCPHdrSize {
 				continue
 			}
 
 			// is that from the target port we expect?
-			tcpHdr := parseTCPHeader(packet[ipHdrSize:n])
+			tcpHdr := parseTCPHeader(packet[/*ipHdrSize*/:n])
 			if int(tcpHdr.Source) != targetPort {
 				continue
 			}
@@ -239,7 +239,7 @@ func ICMPReceiver(done <-chan struct{}, af string, srcAddr net.IP) (chan interfa
 				break
 			}
 			// extract the 8 bytes of the original TCP header
-			if n < icmpHdrSize+minInnerIPHdrSize+minTCPHdrSize {
+			if n < icmpHdrSize+minInnerIPHdrSize+8/*minTCPHdrSize*/ {
 				continue
 			}
 			// not ttl exceeded
